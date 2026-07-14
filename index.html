@@ -555,6 +555,33 @@
       outline-offset: 1px;
     }
 
+    .custom-swatch {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid #999;
+      border-radius: 4px;
+      cursor: pointer;
+      background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+    }
+
+    .custom-swatch::-webkit-color-swatch-wrapper {
+      padding: 0;
+      border-radius: 3px;
+    }
+
+    .custom-swatch::-webkit-color-swatch {
+      border: none;
+      border-radius: 3px;
+    }
+
+    .custom-swatch::-moz-color-swatch {
+      border: none;
+      border-radius: 3px;
+    }
+
     input[type=range] {
       width: 100px;
       accent-color: var(--blue);
@@ -1122,7 +1149,15 @@
       let historyIdx = -1;
       let suppressHistory = false;
 
-      const palette = ['#2B2B2B', '#3457D5', '#C97A2B', '#4E9F63', '#B84C3E', '#8C6FBE', '#FFFFFF', '#F1EEE4'];
+      const palette = [
+        '#111111', '#2B2B2B', '#6B6558', '#9A9384',
+        '#1F3A8A', '#3457D5', '#5B8DEF', '#A0C4E0',
+        '#0F5C4C', '#2F8F6F', '#4E9F63', '#8FC48A',
+        '#8C6FBE', '#B565A7', '#D98CC2', '#EAA9A0',
+        '#B84C3E', '#D96C4F', '#E08E45', '#F5D6A0',
+        '#C97A2B', '#E0A736', '#3FA7A0', '#7D5A44',
+        '#FFFFFF', '#F1EEE4', '#D9D3C2', '#000000'
+      ];
 
       const FRAME_SIZES = {
         desktop: { w: 640, h: 400, label: 'Desktop' },
@@ -2028,11 +2063,13 @@
 
         html += '<div class="row">Stroke color</div><div class="swatches" id="strokeSwatches">' +
           palette.map(c => `<div class="swatch ${el.stroke === c ? 'active' : ''}" data-color="${c}" style="background:${c};border-color:#999"></div>`).join('') +
+          `<input type="color" id="strokeCustom" class="custom-swatch" title="Pick any color" value="${/^#[0-9a-fA-F]{6}$/.test(el.stroke) ? el.stroke : '#2B2B2B'}">` +
           '</div>';
 
         if (['rect', 'ellipse', 'component-box', 'frame'].includes(el.type)) {
           html += '<div class="row">Fill color</div><div class="swatches" id="fillSwatches">' +
             [...palette, 'none'].map(c => `<div class="swatch ${el.fill === c ? 'active' : ''}" data-color="${c}" style="background:${c === 'none' ? 'repeating-linear-gradient(45deg,#eee,#eee 3px,#fff 3px,#fff 6px)' : c};border-color:#999"></div>`).join('') +
+            `<input type="color" id="fillCustom" class="custom-swatch" title="Pick any color" value="${/^#[0-9a-fA-F]{6}$/.test(el.fill) ? el.fill : '#FFFFFF'}">` +
             '</div>';
         }
 
@@ -2090,11 +2127,21 @@
         document.querySelectorAll('#strokeSwatches .swatch').forEach(sw => {
           sw.addEventListener('click', () => { el.stroke = sw.dataset.color; pushHistory(); render(); selectedId = el.id; });
         });
+        const strokeCustom = document.getElementById('strokeCustom');
+        if (strokeCustom) {
+          strokeCustom.addEventListener('input', e => { el.stroke = e.target.value; render(); selectedId = el.id; });
+          strokeCustom.addEventListener('change', () => pushHistory());
+        }
         const fillSw = document.getElementById('fillSwatches');
         if (fillSw) {
           fillSw.querySelectorAll('.swatch').forEach(sw => {
             sw.addEventListener('click', () => { el.fill = sw.dataset.color; pushHistory(); render(); selectedId = el.id; });
           });
+        }
+        const fillCustom = document.getElementById('fillCustom');
+        if (fillCustom) {
+          fillCustom.addEventListener('input', e => { el.fill = e.target.value; render(); selectedId = el.id; });
+          fillCustom.addEventListener('change', () => pushHistory());
         }
         document.getElementById('propSw').addEventListener('input', e => {
           el.sw = parseInt(e.target.value); render(); selectedId = el.id;
